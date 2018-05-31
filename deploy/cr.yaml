@@ -1,0 +1,4 @@
+apiVersion: "database.camilocot/v1alpha1"
+kind: "Cassandra"
+metadata:
+  name: "example"
