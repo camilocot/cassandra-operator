@@ -1,4 +1,6 @@
 apiVersion: "database.camilocot/v1alpha1"
 kind: "Cassandra"
 metadata:
-  name: "example"
+  name: "cassandra-cluster"
+spec:
+  size: 3

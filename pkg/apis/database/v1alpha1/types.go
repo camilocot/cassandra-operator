@@ -22,8 +22,10 @@ type Cassandra struct {
 }
 
 type CassandraSpec struct {
-	// Fill me
+	// Size is the size of the cassandra Statefulset
+	Size int32 `json:"size"`
 }
 type CassandraStatus struct {
-	// Fill me
+	// Nodes are the names of the nodes of the cassandra pods
+	Nodes []string `json:"nodes"`
 }
