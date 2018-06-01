@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cassandra-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: cassandra-operator
+  template:
+    metadata:
+      labels:
+        name: cassandra-operator
+    spec:
+      containers:
+        - name: cassandra-operator
+          image: cassandra-operator:v0.0.1
+          command:
+          - cassandra-operator
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
