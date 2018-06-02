@@ -3,6 +3,8 @@
 tmp/_output
 tmp/_test
 
+# vendor
+vendor/
 
 # Created by https://www.gitignore.io/api/go,vim,emacs,visualstudiocode
 

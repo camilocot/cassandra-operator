@@ -412,9 +412,15 @@
   packages = ["pkg/common"]
   revision = "98b5c3f6a62e3f879d7017752989c925732b6c7d"
 
+[[projects]]
+  name = "k8s.io/kubernetes"
+  packages = ["pkg/util/pointer"]
+  revision = "2bba0127d85d5a46ab4b778548be28623b32d0b0"
+  version = "v1.10.3"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fb8cd1800f2a5c2acb7cbe08bf82d7c8667b8f6c52666cb33ad0fb0daee5c593"
+  inputs-digest = "5273cf118e9e2b140a620846bab8131eb3920a3b98991649d7ea635b1f01366e"
   solver-name = "gps-cdcl"
   solver-version = 1

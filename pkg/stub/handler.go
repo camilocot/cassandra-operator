@@ -11,9 +11,11 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/kubernetes/pkg/util/pointer"
 )
 
 func NewHandler() sdk.Handler {
@@ -25,6 +27,7 @@ type Handler struct {
 }
 
 func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
+	updated := false
 	switch o := event.Object.(type) {
 	case *v1alpha1.Cassandra:
 		cassandra := o
@@ -34,6 +37,7 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 			return nil
 		}
 
+		o.SetDefaults()
 		// Create the headless service if it doesn't exist
 		svc := headLessServiceUnreadyForCassandra(cassandra)
 
@@ -57,15 +61,34 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 		if err != nil {
 			return fmt.Errorf("failed to get statefulset: %v", err)
 		}
+
 		size := cassandra.Spec.Size
+
 		if *stateful.Spec.Replicas != size {
 			stateful.Spec.Replicas = &size
+			updated = true
+		}
+
+		image := cassandra.Spec.Repository + ":" + cassandra.Spec.Version
+
+		if stateful.Spec.Template.Spec.Containers[0].Image != image {
+			stateful.Spec.Template.Spec.Containers[0].Image = image
+			updated = true
+		}
+
+		partition := cassandra.Spec.Partition
+
+		if *stateful.Spec.UpdateStrategy.RollingUpdate.Partition != partition {
+			stateful.Spec.UpdateStrategy.RollingUpdate.Partition = &partition
+			updated = true
+		}
+
+		if updated {
 			err = sdk.Update(stateful)
 			if err != nil {
 				return fmt.Errorf("failed to update statefulset: %v", err)
 			}
 		}
-
 		podList := podList()
 		labelSelector := labels.SelectorFromSet(labelsForCassandra(cassandra.Name)).String()
 		listOps := &metav1.ListOptions{LabelSelector: labelSelector}
@@ -90,6 +113,7 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 func statefulsetForCassandra(c *v1alpha1.Cassandra) *appsv1.StatefulSet {
 	labels := labelsForCassandra(c.Name)
 	replicas := c.Spec.Size
+	partition := c.Spec.Partition
 
 	stateful := &appsv1.StatefulSet{
 		TypeMeta: metav1.TypeMeta{
@@ -106,6 +130,30 @@ func statefulsetForCassandra(c *v1alpha1.Cassandra) *appsv1.StatefulSet {
 			Selector: &metav1.LabelSelector{
 				MatchLabels: labels,
 			},
+			PodManagementPolicy: appsv1.OrderedReadyPodManagement,
+			UpdateStrategy: appsv1.StatefulSetUpdateStrategy{
+				Type: appsv1.RollingUpdateStatefulSetStrategyType,
+				RollingUpdate: &appsv1.RollingUpdateStatefulSetStrategy{
+					Partition: &partition,
+				},
+			},
+			RevisionHistoryLimit: pointer.Int32Ptr(10),
+			VolumeClaimTemplates: []v1.PersistentVolumeClaim{
+				{
+					Spec: v1.PersistentVolumeClaimSpec{
+						AccessModes: []v1.PersistentVolumeAccessMode{"ReadWriteOnce"},
+						Resources: v1.ResourceRequirements{
+							Requests: v1.ResourceList{
+								v1.ResourceStorage: resource.MustParse("1Gi"),
+							},
+						},
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "cassandra",
+					},
+				},
+			},
+
 			Template: v1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: labels,
@@ -114,7 +162,7 @@ func statefulsetForCassandra(c *v1alpha1.Cassandra) *appsv1.StatefulSet {
 					Containers: []v1.Container{
 						{
 							Name:  "cassandra",
-							Image: "gcr.io/google-samples/cassandra:v13",
+							Image: c.Spec.Repository + ":" + c.Spec.Version,
 							Env: []v1.EnvVar{
 								{
 									Name:  "CASSANDRA_SEEDS",

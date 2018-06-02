@@ -3,4 +3,6 @@ kind: "Cassandra"
 metadata:
   name: "cassandra-cluster"
 spec:
-  size: 3
+  size: 2
+  version: v13
+  partition: 1
