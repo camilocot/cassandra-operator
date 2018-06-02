@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -52,15 +53,40 @@ type CassandraSpec struct {
 	//
 	// If partition is not set, default is 0.
 	Partition int32 `json:"partition,omitempty"`
+
+	StorageClassName string `json:"storageClassName"`
+
+	// List of environment variables to set in the cassandra container.
+	// This is used to configure cassandra process. Cassandra cluster cannot be created, when
+	// bad environement variables are provided.
+	// This field cannot be updated.
+	CassandraEnv []v1.EnvVar `json:"cassandraEnv,omitempty"`
 }
 type CassandraStatus struct {
 	// Nodes are the names of the nodes of the cassandra pods
 	Nodes []string `json:"nodes"`
 }
 
+func (c *Cassandra) addEnvVar(name string, value string) {
+	cs := &c.Spec
+
+	for _, v := range cs.CassandraEnv {
+		if v.Name == name {
+			return
+		}
+	}
+
+	cs.CassandraEnv = append(cs.CassandraEnv, v1.EnvVar{
+		Name:  name,
+		Value: value,
+	})
+
+}
+
 func (c *Cassandra) SetDefaults() bool {
 	changed := false
 	cs := &c.Spec
+
 	if len(cs.Repository) == 0 {
 		cs.Repository = defaultRepository
 		changed = true
@@ -70,6 +96,10 @@ func (c *Cassandra) SetDefaults() bool {
 		cs.Version = DefaultCassandraVersion
 		changed = true
 	}
+
+	c.addEnvVar("CASSANDRA_SEEDS", c.Name+"-0."+c.Name+"-unready."+c.Namespace+".svc.cluster.local")
+	c.addEnvVar("MAX_HEAP_SIZE", "512M")
+	c.addEnvVar("MAX_NEWSIZE", "100M")
 
 	return changed
 }

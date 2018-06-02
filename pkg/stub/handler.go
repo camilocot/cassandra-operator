@@ -114,6 +114,15 @@ func statefulsetForCassandra(c *v1alpha1.Cassandra) *appsv1.StatefulSet {
 	labels := labelsForCassandra(c.Name)
 	replicas := c.Spec.Size
 	partition := c.Spec.Partition
+	storageClass := c.Spec.StorageClassName
+	env := append(c.Spec.CassandraEnv, v1.EnvVar{
+		Name: "POD_IP",
+		ValueFrom: &v1.EnvVarSource{
+			FieldRef: &v1.ObjectFieldSelector{
+				FieldPath: "status.podIP",
+			},
+		},
+	})
 
 	stateful := &appsv1.StatefulSet{
 		TypeMeta: metav1.TypeMeta{
@@ -147,6 +156,7 @@ func statefulsetForCassandra(c *v1alpha1.Cassandra) *appsv1.StatefulSet {
 								v1.ResourceStorage: resource.MustParse("1Gi"),
 							},
 						},
+						StorageClassName: &storageClass,
 					},
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "cassandra",
@@ -163,28 +173,7 @@ func statefulsetForCassandra(c *v1alpha1.Cassandra) *appsv1.StatefulSet {
 						{
 							Name:  "cassandra",
 							Image: c.Spec.Repository + ":" + c.Spec.Version,
-							Env: []v1.EnvVar{
-								{
-									Name:  "CASSANDRA_SEEDS",
-									Value: c.Name + "-0." + c.Name + "-unready." + c.Namespace + ".svc.cluster.local",
-								},
-								{
-									Name:  "MAX_HEAP_SIZE",
-									Value: "512M",
-								},
-								{
-									Name:  "HEAP_NEWSIZE",
-									Value: "100M",
-								},
-								{
-									Name: "POD_IP",
-									ValueFrom: &v1.EnvVarSource{
-										FieldRef: &v1.ObjectFieldSelector{
-											FieldPath: "status.podIP",
-										},
-									},
-								},
-							},
+							Env:   env,
 							Ports: []v1.ContainerPort{
 								{
 									Name:          "cql",

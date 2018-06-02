@@ -6,3 +6,9 @@ spec:
   size: 2
   version: v13
   partition: 1
+  storageClassName: local-storage
+  cassandraEnv:
+  - name: MAX_HEAP_SIZE
+    value: "410M"
+  - name: "CASSANDRA_CLUSTER_NAME"
+    value: "Test"
