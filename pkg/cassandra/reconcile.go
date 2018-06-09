@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	api "github.com/camilocot/cassandra-operator/pkg/apis/database/v1alpha1"
+	"github.com/camilocot/cassandra-operator/pkg/util/probe"
 
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/sirupsen/logrus"
@@ -15,6 +16,8 @@ import (
 // by deploying the cassandra cluster,
 func Reconcile(cassandra *api.Cassandra) (err error) {
 	updated := false
+	probe.SetReady()
+
 	cassandra = cassandra.DeepCopy()
 	cassandra.SetDefaults()
 	// Create the headless service if it doesn't exist
