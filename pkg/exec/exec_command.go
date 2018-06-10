@@ -1,4 +1,4 @@
-package cassandra
+package exec
 
 import (
 	"bytes"

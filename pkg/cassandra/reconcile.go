@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/Sirupsen/logrus"
 	api "github.com/camilocot/cassandra-operator/pkg/apis/database/v1alpha1"
+	"github.com/camilocot/cassandra-operator/pkg/exec"
 	"github.com/camilocot/cassandra-operator/pkg/util/probe"
 
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
-	"github.com/sirupsen/logrus"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
@@ -20,6 +21,7 @@ func Reconcile(cassandra *api.Cassandra) (err error) {
 
 	cassandra = cassandra.DeepCopy()
 	cassandra.SetDefaults()
+	cassandra.Status.SetReadyCondition()
 	// Create the headless service if it doesn't exist
 	svc := headLessServiceUnreadyForCassandra(cassandra)
 
@@ -48,15 +50,10 @@ func Reconcile(cassandra *api.Cassandra) (err error) {
 
 	if *stateful.Spec.Replicas != size {
 		if *stateful.Spec.Replicas > size {
-			if *stateful.Spec.Replicas != size+1 {
-				return fmt.Errorf("statefulset could not be updated, instance decommission can only be done 1 by 1 ")
+			err = removeOneMember(cassandra, *stateful.Spec.Replicas)
+			if err != nil {
+				return err
 			}
-			logrus.Infof("Start the decommission of cassandra-cluster-" + fmt.Sprint(size))
-			// @TODO: sync commands
-			out, _ := ExecCommand(cassandra, "cassandra-cluster-"+fmt.Sprint(size), "nodetool", "decommission")
-			logrus.Infof("Finished the decommission of cassandra-cluster-" + fmt.Sprint(size))
-
-			fmt.Println(out)
 		}
 		stateful.Spec.Replicas = &size
 		updated = true
@@ -88,8 +85,8 @@ func Reconcile(cassandra *api.Cassandra) (err error) {
 		return fmt.Errorf("failed to list pods: %v", err)
 	}
 
-	if !reflect.DeepEqual(podNames, cassandra.Status.Nodes) {
-		cassandra.Status.Nodes = podNames
+	if !reflect.DeepEqual(podNames, cassandra.Status.Members.Nodes) {
+		cassandra.Status.Members.Nodes = podNames
 		err := sdk.Update(cassandra)
 		if err != nil {
 			return fmt.Errorf("failed to update cassandra status: %v", err)
@@ -98,4 +95,37 @@ func Reconcile(cassandra *api.Cassandra) (err error) {
 
 	return err
 
+}
+
+func removeOneMember(c *api.Cassandra, currentReplicas int32) error {
+	size := c.Spec.Size
+	if currentReplicas != size+1 {
+		return fmt.Errorf("statefulset could not be updated, instance decommission can only be done 1 by 1. Current replica: %v Size: %v", currentReplicas, size)
+	}
+
+	if c.Status.IsScaling() {
+		return fmt.Errorf("A scaling operation is in progress, can't start another")
+	}
+
+	err := removeMember(c)
+	if err != nil {
+		c.Status.SetReason(err.Error())
+		c.Status.SetPhase(api.ClusterPhaseFailed)
+		return err
+	}
+
+	c.Status.SetReadyCondition()
+	return nil
+}
+
+func removeMember(c *api.Cassandra) error {
+	size := c.Spec.Size
+	c.Status.SetScalingDownCondition(c.Status.Members.Size(), int(size))
+	logrus.Infof("Start the decommission of cassandra-cluster-" + fmt.Sprint(size))
+	out, _ := exec.ExecCommand(c, "cassandra-cluster-"+fmt.Sprint(size), "nodetool", "decommission")
+	logrus.Infof("Finished the decommission of cassandra-cluster-" + fmt.Sprint(size))
+
+	logrus.Infof(out)
+
+	return nil
 }

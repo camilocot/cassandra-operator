@@ -26,8 +26,8 @@ type CassandraList struct {
 type Cassandra struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
-	Spec              CassandraSpec   `json:"spec"`
-	Status            CassandraStatus `json:"status,omitempty"`
+	Spec              CassandraSpec `json:"spec"`
+	Status            ClusterStatus `json:"status,omitempty"`
 }
 
 type CassandraSpec struct {
@@ -61,10 +61,6 @@ type CassandraSpec struct {
 	// bad environement variables are provided.
 	// This field cannot be updated.
 	CassandraEnv []v1.EnvVar `json:"cassandraEnv,omitempty"`
-}
-type CassandraStatus struct {
-	// Nodes are the names of the nodes of the cassandra pods
-	Nodes []string `json:"nodes"`
 }
 
 func (c *Cassandra) addEnvVar(name string, value string) {
