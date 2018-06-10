@@ -91,6 +91,14 @@ Verify that the Cassandra cluster is up:
 $ kubectl get pods -l app=cassandra
 ```
 
+### Other operators used as reference
+[Zalando Postgres][zalando-postgres-operator]
+[Vault][vault-operator]
+[Etcd][etcd-operator]
+[Prometheus][prometheus-operator]
+[Redis][redis-operator]
+[ArangoDB][arangodb-operator]
+
 [client_go]:https://github.com/kubernetes/client-go
 [vault_operator]:https://github.com/coreos/vault-operator
 [operator_sdk]:https://github.com/operator-framework/operator-sdk
@@ -98,3 +106,9 @@ $ kubectl get pods -l app=cassandra
 [go_tool]:https://golang.org/dl/
 [docker_tool]:https://docs.docker.com/install/
 [kubectl_tool]:https://kubernetes.io/docs/tasks/tools/install-kubectl/
+[zalando-postgres-operator]:https://github.com/zalando-incubator/postgres-operator/
+[vault-operator]:https://github.com/operator-framework/operator-sdk-samples/tree/master/vault-operator
+[etcd-operator]:https://github.com/coreos/etcd-operator
+[prometheus-operator]:https://github.com/coreos/prometheus-operator
+[redis-operator]:https://github.com/spotahome/redis-operator
+[arangodb-operator]:https://github.com/arangodb/kube-arangodb
