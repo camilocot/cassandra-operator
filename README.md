@@ -92,12 +92,12 @@ $ kubectl get pods -l app=cassandra
 ```
 
 ### Other operators used as reference
-[Zalando Postgres][zalando-postgres-operator]
-[Vault][vault-operator]
-[Etcd][etcd-operator]
-[Prometheus][prometheus-operator]
-[Redis][redis-operator]
-[ArangoDB][arangodb-operator]
+- [Zalando Postgres][zalando-postgres-operator]
+- [Vault][vault-operator]
+- [Etcd][etcd-operator]
+- [Prometheus][prometheus-operator]
+- [Redis][redis-operator]
+- [ArangoDB][arangodb-operator]
 
 [client_go]:https://github.com/kubernetes/client-go
 [vault_operator]:https://github.com/coreos/vault-operator

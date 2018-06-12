@@ -10,13 +10,13 @@ import (
 	"github.com/camilocot/cassandra-operator/pkg/util/probe"
 
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
+	appsv1 "k8s.io/api/apps/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 // Reconcile reconciles the cassandra cluster's state to the spec specified by cs
 // by deploying the cassandra cluster,
 func Reconcile(cassandra *api.Cassandra) (err error) {
-	updated := false
 	probe.SetReady()
 
 	cassandra = cassandra.DeepCopy()
@@ -34,50 +34,37 @@ func Reconcile(cassandra *api.Cassandra) (err error) {
 	}
 
 	// Create the statefulset if it doesn't exist
-	stateful := statefulsetForCassandra(cassandra)
-	err = sdk.Create(stateful)
+	s := statefulsetForCassandra(cassandra)
+	err = sdk.Create(s)
 	if err != nil && !apierrors.IsAlreadyExists(err) {
 		return fmt.Errorf("failed to create statefulset: %v", err)
 	}
 
 	// Ensure the statefulset size is the same as the spec
-	err = sdk.Get(stateful)
+	err = sdk.Get(s)
 	if err != nil {
 		return fmt.Errorf("failed to get statefulset: %v", err)
 	}
 
 	size := cassandra.Spec.Size
 
-	if *stateful.Spec.Replicas != size {
-		if *stateful.Spec.Replicas > size {
-			err = removeOneMember(cassandra, *stateful.Spec.Replicas)
+	if *s.Spec.Replicas != size {
+		if cassandra.Status.IsScaling() {
+			return fmt.Errorf("A scaling operation is in progress, can't start another")
+		}
+		if *s.Spec.Replicas > size {
+			err = removeOneMember(cassandra, *s.Spec.Replicas)
 			if err != nil {
 				return err
 			}
 		}
-		stateful.Spec.Replicas = &size
-		updated = true
 	}
 
-	image := cassandra.Spec.Repository + ":" + cassandra.Spec.Version
+	stateful := updateStatefulset(cassandra, s)
 
-	if stateful.Spec.Template.Spec.Containers[0].Image != image {
-		stateful.Spec.Template.Spec.Containers[0].Image = image
-		updated = true
-	}
-
-	partition := cassandra.Spec.Partition
-
-	if *stateful.Spec.UpdateStrategy.RollingUpdate.Partition != partition {
-		stateful.Spec.UpdateStrategy.RollingUpdate.Partition = &partition
-		updated = true
-	}
-
-	if updated {
-		err = sdk.Update(stateful)
-		if err != nil {
-			return fmt.Errorf("failed to update statefulset: %v", err)
-		}
+	err = sdk.Update(stateful)
+	if err != nil {
+		return fmt.Errorf("failed to update statefulset: %v", err)
 	}
 
 	podNames, err := nodesForCassandra(cassandra)
@@ -97,14 +84,23 @@ func Reconcile(cassandra *api.Cassandra) (err error) {
 
 }
 
+func updateStatefulset(c *api.Cassandra, s *appsv1.StatefulSet) *appsv1.StatefulSet {
+	stateful := s.DeepCopy()
+	size := c.Spec.Size
+	image := c.Spec.Repository + ":" + c.Spec.Version
+	partition := c.Spec.Partition
+
+	stateful.Spec.Replicas = &size
+	stateful.Spec.Template.Spec.Containers[0].Image = image
+	stateful.Spec.UpdateStrategy.RollingUpdate.Partition = &partition
+
+	return stateful
+}
+
 func removeOneMember(c *api.Cassandra, currentReplicas int32) error {
 	size := c.Spec.Size
 	if currentReplicas != size+1 {
 		return fmt.Errorf("statefulset could not be updated, instance decommission can only be done 1 by 1. Current replica: %v Size: %v", currentReplicas, size)
-	}
-
-	if c.Status.IsScaling() {
-		return fmt.Errorf("A scaling operation is in progress, can't start another")
 	}
 
 	err := removeMember(c)
