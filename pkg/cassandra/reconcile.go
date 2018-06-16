@@ -16,21 +16,16 @@ import (
 
 // Reconcile reconciles the cassandra cluster's state to the spec specified by cs
 // by deploying the cassandra cluster,
-func Reconcile(cassandra *api.Cassandra) (err error) {
+func Reconcile(cassandra *api.Cassandra) error {
 	probe.SetReady()
 
 	cassandra = cassandra.DeepCopy()
 	cassandra.SetDefaults()
 	cassandra.Status.SetReadyCondition()
-	// Create the headless service if it doesn't exist
-	svc := headLessServiceUnreadyForCassandra(cassandra)
 
-	err = sdk.Get(svc)
+	err := createHeadLessService(cassandra)
 	if err != nil {
-		err = sdk.Create(svc)
-		if err != nil {
-			return fmt.Errorf("failed to create headless unready service: %v", err)
-		}
+		return fmt.Errorf("failed to create Headless service: %v", err)
 	}
 
 	// Create the statefulset if it doesn't exist
@@ -46,18 +41,9 @@ func Reconcile(cassandra *api.Cassandra) (err error) {
 		return fmt.Errorf("failed to get statefulset: %v", err)
 	}
 
-	size := cassandra.Spec.Size
-
-	if *s.Spec.Replicas != size {
-		if cassandra.Status.IsScaling() {
-			return fmt.Errorf("A scaling operation is in progress, can't start another")
-		}
-		if *s.Spec.Replicas > size {
-			err = removeOneMember(cassandra, *s.Spec.Replicas)
-			if err != nil {
-				return err
-			}
-		}
+	err = scaleDown(cassandra, s)
+	if err != nil {
+		return fmt.Errorf("failed to scale down statefulset: %v", err)
 	}
 
 	stateful := updateStatefulset(cassandra, s)
@@ -74,7 +60,7 @@ func Reconcile(cassandra *api.Cassandra) (err error) {
 
 	if !reflect.DeepEqual(podNames, cassandra.Status.Members.Nodes) {
 		cassandra.Status.Members.Nodes = podNames
-		err := sdk.Update(cassandra)
+		err = sdk.Update(cassandra)
 		if err != nil {
 			return fmt.Errorf("failed to update cassandra status: %v", err)
 		}
@@ -82,6 +68,36 @@ func Reconcile(cassandra *api.Cassandra) (err error) {
 
 	return err
 
+}
+
+func createHeadLessService(c *api.Cassandra) error {
+	// Create the headless service if it doesn't exist
+	svc := headLessServiceUnreadyForCassandra(c)
+
+	err := sdk.Get(svc)
+	if err != nil {
+		err = sdk.Create(svc)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func scaleDown(c *api.Cassandra, s *appsv1.StatefulSet) error {
+	size := c.Spec.Size
+	if *s.Spec.Replicas != size {
+		if c.Status.IsScaling() {
+			return fmt.Errorf("A scaling operation is in progress, can't start another")
+		}
+		if *s.Spec.Replicas > size {
+			err := removeOneMember(c, *s.Spec.Replicas)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func updateStatefulset(c *api.Cassandra, s *appsv1.StatefulSet) *appsv1.StatefulSet {
@@ -118,7 +134,7 @@ func removeMember(c *api.Cassandra) error {
 	size := c.Spec.Size
 	c.Status.SetScalingDownCondition(c.Status.Members.Size(), int(size))
 	logrus.Infof("Start the decommission of cassandra-cluster-" + fmt.Sprint(size))
-	out, _ := exec.ExecCommand(c, "cassandra-cluster-"+fmt.Sprint(size), "nodetool", "decommission")
+	out, _ := exec.Command(c, "cassandra-cluster-"+fmt.Sprint(size), "nodetool", "decommission")
 	logrus.Infof("Finished the decommission of cassandra-cluster-" + fmt.Sprint(size))
 
 	logrus.Infof(out)
