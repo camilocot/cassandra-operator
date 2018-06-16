@@ -98,6 +98,7 @@ $ kubectl get pods -l app=cassandra
 - [Prometheus][prometheus-operator]
 - [Redis][redis-operator]
 - [ArangoDB][arangodb-operator]
+- [TensorFlow][tensorflow-operator]
 
 [client_go]:https://github.com/kubernetes/client-go
 [vault_operator]:https://github.com/coreos/vault-operator
@@ -112,3 +113,4 @@ $ kubectl get pods -l app=cassandra
 [prometheus-operator]:https://github.com/coreos/prometheus-operator
 [redis-operator]:https://github.com/spotahome/redis-operator
 [arangodb-operator]:https://github.com/arangodb/kube-arangodb
+[tensorflow-operator]:https://github.com/kubeflow/tf-operator
