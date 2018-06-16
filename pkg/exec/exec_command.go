@@ -18,7 +18,8 @@ import (
 	"k8s.io/client-go/tools/remotecommand"
 )
 
-func ExecCommand(c *v1alpha1.Cassandra, podName string, command ...string) (string, error) {
+// Command run a command in a pod
+func Command(c *v1alpha1.Cassandra, podName string, command ...string) (string, error) {
 
 	var (
 		execOut bytes.Buffer

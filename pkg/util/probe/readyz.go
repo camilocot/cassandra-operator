@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	// HTTPReadyzEndpoint is the ready endpoint path
 	HTTPReadyzEndpoint = "/readyz"
 )
 
@@ -14,6 +15,7 @@ var (
 	ready = false
 )
 
+// SetReady set ready to true using a exclusion lock
 func SetReady() {
 	mu.Lock()
 	ready = true

@@ -6,13 +6,17 @@ import (
 )
 
 const (
-	defaultRepository       = "gcr.io/google-samples/cassandra"
+	defaultRepository = "gcr.io/google-samples/cassandra"
+	// DefaultCassandraVersion default Cassandra docker image version
 	DefaultCassandraVersion = "v13"
-	DefaultPartition        = 0
+
+	// DefaultPartition default value for .spec.updateStrategy.rollingUpdate.partition
+	DefaultPartition = 0
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
+// CassandraList is a list of Cassandra clusters
 type CassandraList struct {
 	metav1.TypeMeta `json:",inline"`
 	// Standard list metadata
@@ -23,6 +27,7 @@ type CassandraList struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
+// Cassandra represents a Cassandra cluster
 type Cassandra struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
@@ -30,6 +35,7 @@ type Cassandra struct {
 	Status            ClusterStatus `json:"status,omitempty"`
 }
 
+// CassandraSpec contains the specification of the Cassandra cluster
 type CassandraSpec struct {
 	// Size is the expected size of the cassandra cluster.
 	// The cassandra-operator will eventually make the size of the running
@@ -79,6 +85,8 @@ func (c *Cassandra) addEnvVar(name string, value string) {
 
 }
 
+// SetDefaults set the defaults values for the Cassandra cluster. Set docker image and
+// the following env variables: CASSANDRA_SEEDS, MAX_NEWSIZE and MAX_HEAP_SIZE
 func (c *Cassandra) SetDefaults() bool {
 	changed := false
 	cs := &c.Spec

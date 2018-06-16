@@ -18,7 +18,7 @@ func TestUpdateStatefulset(t *testing.T) {
 
 	c.Spec.Partition = 2
 	s = updateStatefulset(&c, s)
-	if &c.Spec.Partition != s.Spec.UpdateStrategy.RollingUpdate.Partition {
-		t.Error("Partition wasn't updated")
+	if c.Spec.Partition != *s.Spec.UpdateStrategy.RollingUpdate.Partition {
+		t.Errorf("Partition wasn't updated, expected %v but was %v", c.Spec.Partition, *s.Spec.UpdateStrategy.RollingUpdate.Partition)
 	}
 }
