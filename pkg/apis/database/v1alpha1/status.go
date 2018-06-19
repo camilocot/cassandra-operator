@@ -91,6 +91,9 @@ func (cs *ClusterStatus) IsScaling() bool {
 		return false
 	}
 	c := cs.Conditions
+	if c == nil {
+		return false
+	}
 	return c[len(c)-1].Type == ClusterConditionScaling
 }
 
