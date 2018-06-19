@@ -99,6 +99,7 @@ $ kubectl get pods -l app=cassandra
 - [Redis][redis-operator]
 - [ArangoDB][arangodb-operator]
 - [TensorFlow][tensorflow-operator]
+- [Prometheus Jmx Exporter][prometheus-jmx-exporter-operator]
 
 [client_go]:https://github.com/kubernetes/client-go
 [vault_operator]:https://github.com/coreos/vault-operator
@@ -114,3 +115,4 @@ $ kubectl get pods -l app=cassandra
 [redis-operator]:https://github.com/spotahome/redis-operator
 [arangodb-operator]:https://github.com/arangodb/kube-arangodb
 [tensorflow-operator]:https://github.com/kubeflow/tf-operator
+[prometheus-jmx-exporter-operator]:https://github.com/banzaicloud/prometheus-jmx-exporter-operator
