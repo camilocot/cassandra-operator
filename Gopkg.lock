@@ -149,8 +149,8 @@
 [[projects]]
   name = "github.com/imdario/mergo"
   packages = ["."]
-  revision = "9d5f1277e9a8ed20c3684bda8fde67c05628518c"
-  version = "v0.3.4"
+  revision = "9316a62528ac99aaecb4e47eadd6dc8aa6533d58"
+  version = "v0.3.5"
 
 [[projects]]
   name = "github.com/json-iterator/go"
@@ -172,7 +172,7 @@
     "jlexer",
     "jwriter"
   ]
-  revision = "9825584555aa620c53c265d4a09ace0df1346fd9"
+  revision = "3fdea8d05856a0c8df22ed4bc71b3219245e4485"
 
 [[projects]]
   name = "github.com/matttproud/golang_protobuf_extensions"
@@ -201,7 +201,7 @@
     "pkg/util/k8sutil",
     "version"
   ]
-  revision = "89bf021063d18b6769bdc551ed08fc37027939d5"
+  revision = "603eb71b15d67c25b5e5dbc0c1a760b7ddec80df"
 
 [[projects]]
   branch = "master"
@@ -214,6 +214,12 @@
   packages = ["."]
   revision = "5f041e8faa004a95c88a202771f4cc3e991971e6"
   version = "v2.0.1"
+
+[[projects]]
+  name = "github.com/pmezard/go-difflib"
+  packages = ["difflib"]
+  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
+  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/prometheus/client_golang"
@@ -246,7 +252,7 @@
     "nfs",
     "xfs"
   ]
-  revision = "94663424ae5ae9856b40a9f170762b4197024661"
+  revision = "7d6f385de8bea29190f15ba9931442a0eaef9af7"
 
 [[projects]]
   name = "github.com/sirupsen/logrus"
@@ -261,10 +267,20 @@
   version = "v1.0.1"
 
 [[projects]]
+  name = "github.com/stretchr/testify"
+  packages = [
+    "assert",
+    "require",
+    "suite"
+  ]
+  revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
+  version = "v1.2.2"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "5ba7f63082460102a45837dbd1827e10f9479ac0"
+  revision = "a49355c7e3f8fe157a85be2f77e6e269a0f89602"
 
 [[projects]]
   branch = "master"
@@ -276,7 +292,7 @@
     "http2/hpack",
     "idna"
   ]
-  revision = "1e491301e022f8f977054da4c2d852decd59571f"
+  revision = "afe8f62b1d6bbd81f31868121a50b06d8188e1f9"
 
 [[projects]]
   branch = "master"
@@ -285,7 +301,7 @@
     "unix",
     "windows"
   ]
-  revision = "c11f84a56e43e20a78cee75a7c034031ecf57d1f"
+  revision = "63fc586f45fe72d95d5240a5d5eb95e6503907d3"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -465,23 +481,23 @@
     "util/workqueue"
   ]
   revision = "9389c055a838d4f208b699b3c7c51b70f2368861"
-  version = "kubernetes-1.9.3"
+  version = "kubernetes-1.9.1"
 
 [[projects]]
   branch = "master"
   name = "k8s.io/kube-openapi"
   packages = ["pkg/common"]
-  revision = "98b5c3f6a62e3f879d7017752989c925732b6c7d"
+  revision = "91cfa479c814065e420cee7ed227db0f63a5854e"
 
 [[projects]]
   name = "k8s.io/kubernetes"
   packages = ["pkg/util/pointer"]
-  revision = "2bba0127d85d5a46ab4b778548be28623b32d0b0"
-  version = "v1.10.3"
+  revision = "32ac1c9073b132b8ba18aa830f46b77dcceb0723"
+  version = "v1.10.5"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e87f3dc7e695dccefc556770d9fe194e233e883a6562db7a5cec025db0bc0371"
+  inputs-digest = "e6dcaa470cbaea01db0c0e421bc4c24b435ed90beca2d89bf830eb0fa4437292"
   solver-name = "gps-cdcl"
   solver-version = 1
