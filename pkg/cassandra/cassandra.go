@@ -14,7 +14,7 @@ import (
 	"k8s.io/kubernetes/pkg/util/pointer"
 )
 
-// statefulsetForCassandra returns a cassandra StatefulSet object
+// StatefulSet returns a cassandra StatefulSet object
 func StatefulSet(api *v1alpha1.Cassandra) *appsv1.StatefulSet {
 	labels := labelsForCassandra(api.Name)
 	replicas := api.Spec.Size
@@ -124,6 +124,7 @@ func StatefulSet(api *v1alpha1.Cassandra) *appsv1.StatefulSet {
 	return stateful
 }
 
+// Service returns a cassandra Service object
 func Service(api *v1alpha1.Cassandra) *v1.Service {
 
 	labels := labelsForCassandra(api.Name)

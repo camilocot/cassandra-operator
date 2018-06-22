@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/Sirupsen/logrus"
 	apiv1alpha "github.com/camilocot/cassandra-operator/pkg/apis/database/v1alpha1"
 	"github.com/camilocot/cassandra-operator/pkg/exec"
 	"github.com/camilocot/cassandra-operator/pkg/util/probe"
+	"github.com/sirupsen/logrus"
 
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 )
