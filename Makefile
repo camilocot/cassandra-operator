@@ -9,7 +9,7 @@ GOGET=$(GOCMD) get
 
 .PHONY: test
 test: lint
-	KUBERNETES_CONFIG=$(KUBERNETES_CONFIG) $(GOTEST) -v $(PKGS)
+	KUBERNETES_CONFIG=$(KUBERNETES_CONFIG) $(GOTEST) -v -timeout 120s -short $(PKGS)
 
 clean:
 	$(GOCLEAN)
