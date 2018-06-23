@@ -46,6 +46,10 @@ func Command(c *v1alpha1.Cassandra, podName string, command ...string) (string, 
 		return "", fmt.Errorf("could not determine which container to use")
 	}
 
+	if pod.Status.ContainerStatuses[0].Ready != true {
+		return "", fmt.Errorf("container is not ready")
+	}
+
 	kubeClient, kubeConfig := mustNewKubeClientAndConfig()
 
 	req := kubeClient.CoreV1().RESTClient().Post().
