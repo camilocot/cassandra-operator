@@ -4,54 +4,41 @@ import (
 	"fmt"
 	"reflect"
 
-	apiv1alpha "github.com/camilocot/cassandra-operator/pkg/apis/database/v1alpha1"
+	v1alpha1 "github.com/camilocot/cassandra-operator/pkg/apis/database/v1alpha1"
 	"github.com/camilocot/cassandra-operator/pkg/exec"
-	"github.com/camilocot/cassandra-operator/pkg/util/probe"
 	"github.com/sirupsen/logrus"
 
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 )
 
-// Reconcile reconciles the cassandra cluster's state to the spec specified by cs
-// by deploying the cassandra cluster,
-func Reconcile(api *apiv1alpha.Cassandra) (err error) {
-
-	probe.SetReady()
-
-	api.SetDefaults()
-
-	// Reconcile Service object
-	err = reconcileService(api)
-	if err != nil {
-		return failedReconciliation("service", api, err)
-	}
-
-	// Reconcile Members
-	err = reconcileMembers(api)
-	if err != nil {
-		return failedReconciliation("members", api, err)
-	}
-
-	// Reconcile StatefulSet object
-	err = reconcileStatefulset(api)
-	if err != nil {
-		return failedReconciliation("statefulset", api, err)
-	}
-
-	// Reconcile Status object
-	err = reconcileStatus(api)
-	if err != nil {
-		return failedReconciliation("status", api, err)
-	}
-
-	return nil
-
+// Controller manages reconciliation of the Cassandra cluster
+type Controller interface {
+	ReconcileService() error
+	ReconcileStatus() error
+	ReconcileMembers() error
+	ReconcileStatefulset() error
+	SetDefaults() bool
+	FailedReconciliation(string, error) error
 }
 
-func reconcileService(api *apiv1alpha.Cassandra) (err error) {
+// Cluster represents a Cassandra Cluster
+type Cluster struct {
+	Resource *v1alpha1.Cassandra
+
+	Controller
+}
+
+// NewCassandraCluster creates a new Cassandra Cluster object
+func NewCassandraCluster(c *v1alpha1.Cassandra) *Cluster {
+	return &Cluster{Resource: c}
+}
+
+// ReconcileService reconciles the headless service
+func (c Cluster) ReconcileService() (err error) {
 	// Create the headless service if it doesn't exist
-	existingSvc := Service(api)
-	desiredSvc := Service(api)
+	r := c.Resource
+	existingSvc := Service(r)
+	desiredSvc := Service(r)
 
 	err = sdk.Get(existingSvc)
 	if err != nil {
@@ -66,10 +53,12 @@ func reconcileService(api *apiv1alpha.Cassandra) (err error) {
 	return err
 }
 
-func reconcileStatefulset(api *apiv1alpha.Cassandra) (err error) {
+// ReconcileStatefulset reconciles the statefulset
+func (c Cluster) ReconcileStatefulset() (err error) {
 
-	existingSs := StatefulSet(api)
-	desiredSs := StatefulSet(api)
+	r := c.Resource
+	existingSs := StatefulSet(r)
+	desiredSs := StatefulSet(r)
 
 	err = sdk.Get(existingSs)
 	if err != nil {
@@ -83,32 +72,37 @@ func reconcileStatefulset(api *apiv1alpha.Cassandra) (err error) {
 	return err
 }
 
-func reconcileStatus(api *apiv1alpha.Cassandra) (err error) {
-	podNames, err := nodesForCassandra(api)
+// ReconcileStatus reconciles the cluster status
+func (c Cluster) ReconcileStatus() (err error) {
+	r := c.Resource
+	podNames, err := nodesForCassandra(r)
 	if err != nil {
 		return err
 	}
 
-	if !reflect.DeepEqual(podNames, api.Status.Members.Nodes) {
-		api.Status.Members.Nodes = podNames
-		err = sdk.Update(api)
+	if !reflect.DeepEqual(podNames, r.Status.Members.Nodes) {
+		r.Status.Members.Nodes = podNames
+		err = sdk.Update(r)
 	}
 
-	api.Status.SetReadyCondition()
+	r.Status.SetReadyCondition()
 	return err
 }
 
-func reconcileMembers(api *apiv1alpha.Cassandra) (err error) {
-	existing := StatefulSet(api)
+// ReconcileMembers reconciles the cluster member status
+func (c Cluster) ReconcileMembers() (err error) {
+	r := c.Resource
+	existing := StatefulSet(r)
 
 	err = sdk.Get(existing)
 
+	// @TODO: Cluster not initialized, use Status to verify
 	if err != nil {
-		return err
+		return nil
 	}
 
-	desiredSize := api.Spec.Size
-	existingSize := *existing.Spec.Replicas
+	desiredSize := r.Spec.Size
+	existingSize := existing.Status.Replicas
 
 	logrus.Infof("Existing size %v desiredSize: %v", existingSize, desiredSize)
 
@@ -122,25 +116,32 @@ func reconcileMembers(api *apiv1alpha.Cassandra) (err error) {
 		return fmt.Errorf("statefulset could not be updated, instance decommission can only be done 1 by 1. Current replica: %v Desired size: %v", existingSize, desiredSize)
 	}
 
-	if api.Status.IsScaling() {
+	if r.Status.IsScaling() {
 		return fmt.Errorf("statefulset is scaling")
 	}
 
-	api.Status.SetScalingDownCondition(int(desiredSize), int(existingSize))
+	r.Status.SetScalingDownCondition(int(desiredSize), int(existingSize))
 
 	logrus.Infof("Start the decommission of %v", podName)
 
-	out, err := exec.Command(api, podName, "nodetool", "decommission")
+	out, err := exec.Command(r, podName, "nodetool", "decommission")
 
 	logrus.Infof(out)
+	// @TODO: mark node as decommissioned
 	logrus.Infof("Finished the decommission of %v", podName)
 	return err
 }
 
-func failedReconciliation(object string, api *apiv1alpha.Cassandra, err error) error {
+// FailedReconciliation set the cluster status to failed
+func (c Cluster) FailedReconciliation(failedObjectName string, err error) error {
 
-	api.Status.SetReason(err.Error())
-	api.Status.SetPhase(apiv1alpha.ClusterPhaseFailed)
+	c.Resource.Status.SetReason(err.Error())
+	c.Resource.Status.SetPhase(v1alpha1.ClusterPhaseFailed)
 
-	return fmt.Errorf("[%s] API: %s Failed to reconcile %v %v", api.Namespace, api.Name, object, err)
+	return fmt.Errorf("[%s] API: %s Failed to reconcile %v %v", c.Resource.Namespace, c.Resource.Name, failedObjectName, err)
+}
+
+// SetDefaults sets defaults resource values
+func (c Cluster) SetDefaults() bool {
+	return c.Resource.SetDefaults()
 }

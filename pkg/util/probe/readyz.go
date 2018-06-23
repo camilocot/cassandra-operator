@@ -24,12 +24,17 @@ func SetReady() {
 
 // ReadyzHandler writes back the HTTP status code 200 if the operator is ready, and 500 otherwise
 func ReadyzHandler(w http.ResponseWriter, r *http.Request) {
-	mu.Lock()
-	isReady := ready
-	mu.Unlock()
-	if isReady {
+	if GetReady() {
 		w.WriteHeader(http.StatusOK)
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+
+// GetReady get ready status
+func GetReady() bool {
+	mu.Lock()
+	isReady := ready
+	mu.Unlock()
+	return isReady
 }
