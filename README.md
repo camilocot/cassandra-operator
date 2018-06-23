@@ -26,7 +26,7 @@ The quick start guide walks through the process of building the Cassandra operat
 **Note**: This guide uses quay.io for the public registry.
 
 **Prerequisites**
-Dynamic volume provisioning and storage class configured in Kubernetes. The StatefulSet controller managed by the operator creates PersistentVolumeClaims that are bound to PersistentVolumes, that the cluster should dynamically provision. A manifest for local storage class is included as example in `deploy/storage/` and also 3 PVs.
+Dynamic volume provisioning and storage class configured in Kubernetes. The StatefulSet controller managed by the operator creates PersistentVolumeClaims that are bound to PersistentVolumes, that the cluster should dynamically provision. A manifest for local storage class is included as example in `deploy/storage/`, `local` volumes is an alpha feature that requires the PersistentLocalVolumes feature gate to be enabled if Kubernetes cluster version is lower than v.1.10.
 
 ### Install the Operator SDK CLI
 
