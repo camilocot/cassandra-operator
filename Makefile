@@ -16,7 +16,7 @@ clean:
 
 deps:
 	$(GOGET) -u github.com/golang/dep/cmd/dep
-	dep install
+	dep ensure
 
 BIN_DIR := $(GOPATH)/bin
 GOMETALINTER := $(BIN_DIR)/gometalinter
