@@ -85,6 +85,14 @@ func (cs *ClusterStatus) IsFailed() bool {
 	return cs.Phase == ClusterPhaseFailed
 }
 
+// IsRunning returns if the cluster is running
+func (cs *ClusterStatus) IsRunning() bool {
+	if cs == nil {
+		return false
+	}
+	return cs.Phase == ClusterPhaseRunning
+}
+
 // IsScaling returns if the cluster is in a scaling condition
 func (cs *ClusterStatus) IsScaling() bool {
 	if cs == nil {

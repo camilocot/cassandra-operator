@@ -69,6 +69,10 @@ func (c Cluster) ReconcileStatefulset() (err error) {
 			err = sdk.Update(existingSs)
 		}
 	}
+
+	if err != nil {
+		r.Status.SetPhase(v1alpha1.ClusterPhaseRunning)
+	}
 	return err
 }
 
@@ -96,8 +100,7 @@ func (c Cluster) ReconcileMembers() (err error) {
 
 	err = sdk.Get(existing)
 
-	// @TODO: Cluster not initialized, use Status to verify
-	if err != nil {
+	if !r.Status.IsRunning() {
 		return nil
 	}
 
