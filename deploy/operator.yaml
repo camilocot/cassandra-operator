@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: cassandra-operator
-          image: cassandra-operator:v0.0.1
+          image: camilocot/operator:v0.0.1
           command:
           - cassandra-operator
           imagePullPolicy: Always
