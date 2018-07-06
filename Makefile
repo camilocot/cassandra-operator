@@ -26,7 +26,7 @@ $(GOMETALINTER):
 	gometalinter --install
 
 lint: $(GOMETALINTER)
-	gometalinter --disable=aligncheck --disable=unconvert --disable=gotype --disable=errcheck --disable=varcheck --disable=structcheck --disable gosimple --disable staticcheck --disable interfacer --deadline=20s --exclude=zz --vendor --tests ./...
+	gometalinter -d --fast --disable gosimple --disable staticcheck --deadline=20s --exclude=zz --vendor --tests ./...
 
 build:
 	operator-sdk build camilocot/operator:v0.0.1
