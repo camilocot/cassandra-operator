@@ -1,4 +1,6 @@
 # Cassandra Operator
+[![Build Status](https://travis-ci.org/camilocot/cassandra-operator.svg?branch=master)](https://travis-ci.org/camilocot/cassandra-operator)
+### Project Status: pre-alpha
 Cassandra Operator - This is a Kubernetes Operator for Cassandra
 
 The goal of this Operator is to support various life-cycle actions
