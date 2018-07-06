@@ -28,10 +28,7 @@ $(GOMETALINTER):
 lint: $(GOMETALINTER)
 	gometalinter --disable=aligncheck --disable=unconvert --disable=gotype --disable=errcheck --disable=varcheck --disable=structcheck --disable gosimple --disable staticcheck --disable interfacer --deadline=20s --exclude=zz --vendor --tests ./...
 
-install:
-	go install github.com/operator-framework/operator-sdk/commands/operator-sdk
-
-build: install
+build:
 	operator-sdk build camilocot/operator:v0.0.1
 
 .PHONY: all build test lint deps
