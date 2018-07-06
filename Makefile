@@ -22,13 +22,13 @@ deps:
 	dep ensure -v
 
 $(GOMETALINTER):
-	go get -u github.com/alecthomas/gometalinter
+	$(GOGET) -u github.com/alecthomas/gometalinter
 	gometalinter --install
 
 lint: $(GOMETALINTER)
 	gometalinter -d --fast --disable gosimple --disable staticcheck --deadline=20s --exclude=zz --vendor --tests ./...
 
 build:
-	operator-sdk build camilocot/operator:v0.0.1
+	$(BIN_DIR)/operator-sdk build camilocot/operator:v0.0.1
 
 .PHONY: all build test lint deps
