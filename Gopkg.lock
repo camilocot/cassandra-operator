@@ -488,7 +488,7 @@
     "util/workqueue"
   ]
   revision = "9389c055a838d4f208b699b3c7c51b70f2368861"
-  version = "kubernetes-1.9.1"
+  version = "kubernetes-1.9.3"
 
 [[projects]]
   branch = "master"
@@ -505,6 +505,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f8c051b8993f3e50a7535a231545dc2969a2197e688d367d0fcc8e3997a41beb"
+  inputs-digest = "5c43a64709667adc71e1848dfc309cb4111a1cf1da2b0fef41520fadf399742f"
   solver-name = "gps-cdcl"
   solver-version = 1
