@@ -1,5 +1,6 @@
 KUBERNETES_CONFIG ?= /etc/kubernetes/admin.conf
 PKGS := $(shell go list ./... | grep -v /vendor)
+IMAGE ?= camilocot/operator:v0.0.1
 
 # Go parameters
 GOCMD=go
@@ -29,6 +30,6 @@ lint: $(GOMETALINTER)
 	gometalinter -d --fast --disable gosimple --disable staticcheck --deadline=20s --exclude=zz --vendor --tests ./...
 
 build:
-	$(BIN_DIR)/operator-sdk build camilocot/operator:v0.0.1
+	IMAGE=$(IMAGE) ./tmp/build//docker_build.sh
 
 .PHONY: all build test lint deps

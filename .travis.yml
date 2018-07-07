@@ -16,6 +16,7 @@ env:
     - CHANGE_MINIKUBE_NONE_USER=true
     - KUBECONFIG=$HOME/.kube/config
     - KUBERNETES_CONFIG=$HOME/.kube/config
+    - IMAGE=camilocot/cassandra-operator:v0.0.$TRAVIS_JOB_ID
 
 before_script:
   - make deps
