@@ -27,9 +27,10 @@ $(GOMETALINTER):
 	gometalinter --install
 
 lint: $(GOMETALINTER)
-	gometalinter -d --fast --disable gosimple --disable staticcheck --deadline=20s --exclude=zz --vendor --tests ./...
+	gometalinter -d --fast --disable gosimple --disable staticcheck --deadline=60s --exclude=zz --vendor --tests ./...
 
 build:
+	./tmp/build/build.sh
 	IMAGE=$(IMAGE) ./tmp/build//docker_build.sh
 
 .PHONY: all build test lint deps
