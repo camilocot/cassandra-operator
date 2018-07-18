@@ -13,6 +13,10 @@ import (
 
 func NewCassandra() *v1alpha1.Cassandra {
 	return &v1alpha1.Cassandra{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Cassandra",
+			APIVersion: "v1alpha1",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "example",
 			Namespace: "default",
@@ -41,11 +45,12 @@ func TestStatefulSet(t *testing.T) {
 	cs := NewCassandra()
 	st := StatefulSet(cs)
 	pod := st.Spec.Template.Spec
+	trueVar := true
 
-	assert.Equal(t, cs.ObjectMeta.Name, st.ObjectMeta.Name)
-	assert.Equal(t, cs.ObjectMeta.Namespace, st.ObjectMeta.Namespace)
+	assert.Equal(t, cs.Name, st.ObjectMeta.Name)
+	assert.Equal(t, cs.Namespace, st.ObjectMeta.Namespace)
 
-	assert.Equal(t, cs.ObjectMeta.Name+"-unready", st.Spec.ServiceName)
+	assert.Equal(t, cs.Name+"-unready", st.Spec.ServiceName)
 	assert.Equal(t, cs.Spec.Size, *st.Spec.Replicas)
 	assert.Equal(t, appsv1.OrderedReadyPodManagement, st.Spec.PodManagementPolicy)
 
@@ -95,5 +100,12 @@ func TestStatefulSet(t *testing.T) {
 		v1.ResourceStorage: resource.MustParse("1Gi"),
 	}, vct.Spec.Resources.Requests)
 
-	// @TODO verify own references
+	assert.Equal(t, 1, len(st.OwnerReferences))
+	assert.Equal(t, metav1.OwnerReference{
+		APIVersion: cs.APIVersion,
+		Kind:       cs.Kind,
+		Name:       cs.Name,
+		UID:        cs.UID,
+		Controller: &trueVar,
+	}, st.OwnerReferences[0])
 }
