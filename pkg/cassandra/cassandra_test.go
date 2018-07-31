@@ -9,6 +9,7 @@ import (
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func NewCassandra() *v1alpha1.Cassandra {
@@ -108,4 +109,38 @@ func TestStatefulSet(t *testing.T) {
 		UID:        cs.UID,
 		Controller: &trueVar,
 	}, st.OwnerReferences[0])
+}
+
+func TestService(t *testing.T) {
+	cs := NewCassandra()
+	svc := Service(cs)
+	labels := labelsForCassandra(cs.Name)
+	trueVar := true
+
+	assert.Equal(t, cs.Name+"-unready", svc.ObjectMeta.Name)
+	assert.Equal(t, cs.Namespace, svc.ObjectMeta.Namespace)
+	assert.Equal(t, map[string]string{"service.alpha.kubernetes.io/tolerate-unready-endpoints": "true"}, svc.ObjectMeta.Annotations)
+	assert.Equal(t, labels, svc.ObjectMeta.Labels)
+
+	assert.Equal(t, "None", svc.Spec.ClusterIP)
+	assert.Equal(t, v1.ServiceTypeClusterIP, svc.Spec.Type)
+	assert.Equal(t,
+		[]v1.ServicePort{
+			{
+				Name:       "cql",
+				Port:       9042,
+				TargetPort: intstr.FromInt(9042),
+				Protocol:   v1.ProtocolTCP,
+			},
+		}, svc.Spec.Ports)
+
+	assert.Equal(t, labels, svc.Spec.Selector)
+	assert.Equal(t, 1, len(svc.OwnerReferences))
+	assert.Equal(t, metav1.OwnerReference{
+		APIVersion: cs.APIVersion,
+		Kind:       cs.Kind,
+		Name:       cs.Name,
+		UID:        cs.UID,
+		Controller: &trueVar,
+	}, svc.OwnerReferences[0])
 }
