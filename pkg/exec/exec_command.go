@@ -111,10 +111,16 @@ func inClusterConfig() (*rest.Config, error) {
 		if err != nil {
 			return nil, err
 		}
-		os.Setenv("KUBERNETES_SERVICE_HOST", addrs[0])
+		err = os.Setenv("KUBERNETES_SERVICE_HOST", addrs[0])
+		if err != nil {
+			return nil, err
+		}
 	}
 	if len(os.Getenv("KUBERNETES_SERVICE_PORT")) == 0 {
-		os.Setenv("KUBERNETES_SERVICE_PORT", "443")
+		err := os.Setenv("KUBERNETES_SERVICE_PORT", "443")
+		if err != nil {
+			return nil, err
+		}
 	}
 	return rest.InClusterConfig()
 }
