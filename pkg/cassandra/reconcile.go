@@ -127,7 +127,7 @@ func (c Cluster) ReconcileMembers() (err error) {
 
 	logrus.Infof("Start the decommission of %v", podName)
 
-	out, err := exec.Command(r, podName, "nodetool", "decommission") // #nosec
+	out, err := exec.Command(podName, r.Namespace, "nodetool", "decommission") // #nosec
 
 	logrus.Infof(out)
 	// @TODO: mark node as decommissioned
