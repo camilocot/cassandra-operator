@@ -31,6 +31,6 @@ lint: $(GOMETALINTER)
 
 build:
 	./tmp/build/build.sh
-	IMAGE=$(IMAGE) ./tmp/build//docker_build.sh
+	IMAGE=$(IMAGE) ./tmp/build/docker_build.sh
 
 .PHONY: all build test lint deps
