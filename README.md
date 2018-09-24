@@ -104,6 +104,7 @@ $ kubectl get pods -l app=cassandra
 - [Prometheus Jmx Exporter][prometheus-jmx-exporter-operator]
 - [Flux Operator][flux-operator]
 - [ElasticSearch Operator][elasticsearch-operator]
+- [Wildfly Operator][wildfly-operator]
 
 [client_go]:https://github.com/kubernetes/client-go
 [vault_operator]:https://github.com/coreos/vault-operator
@@ -122,3 +123,4 @@ $ kubectl get pods -l app=cassandra
 [prometheus-jmx-exporter-operator]:https://github.com/banzaicloud/prometheus-jmx-exporter-operator
 [flux-operator]:https://github.com/justinbarrick/flux-operator/
 [elasticsearch-operator]:https://github.com/ViaQ/elasticsearch-operator
+[wildfly-operator]:https://github.com/banzaicloud/wildfly-operator
